@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 
@@ -19,9 +20,12 @@ export function Sidebar() {
 
   return (
     <aside className="flex w-56 shrink-0 flex-col border-r border-gray-200 bg-white">
-      <div className="border-b border-gray-200 px-4 py-4">
-        <p className="text-sm font-semibold">NGR Barbearia</p>
-        <p className="text-xs text-gray-500">{user?.name}</p>
+      <div className="flex items-center gap-2 border-b border-gray-200 px-4 py-4">
+        <Image src="/logo.png" alt="NGR Barbearia" width={32} height={32} className="rounded-full" />
+        <div>
+          <p className="text-sm font-semibold">NGR Barbearia</p>
+          <p className="text-xs text-gray-500">{user?.name}</p>
+        </div>
       </div>
       <nav className="flex-1 space-y-1 p-2">
         {NAV_ITEMS.map((item) => {

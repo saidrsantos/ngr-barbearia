@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, FormEvent } from 'react';
+import Image from 'next/image';
 import { useAuth } from '@/context/AuthContext';
 
 export default function LoginPage() {
@@ -26,8 +27,9 @@ export default function LoginPage() {
   return (
     <div className="flex min-h-screen items-center justify-center px-4">
       <form onSubmit={handleSubmit} className="w-full max-w-sm rounded-xl border border-gray-200 bg-white p-8 shadow-sm">
-        <h1 className="mb-1 text-xl font-semibold">NGR Barbearia</h1>
-        <p className="mb-6 text-sm text-gray-500">Painel administrativo</p>
+        <Image src="/logo.png" alt="NGR Barbearia" width={72} height={72} className="mx-auto mb-4 rounded-full" priority />
+        <h1 className="mb-1 text-center text-xl font-semibold">NGR Barbearia</h1>
+        <p className="mb-6 text-center text-sm text-gray-500">Painel administrativo</p>
 
         <label className="mb-1 block text-sm font-medium text-gray-700">E-mail</label>
         <input
