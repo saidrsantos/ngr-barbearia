@@ -8,6 +8,7 @@ import { createConversationsRouter } from './routes/conversations';
 import { createAppointmentsRouter } from './services/appointments';
 import { createWhatsAppWebhookRouter } from './services/whatsapp/webhookRouter';
 import { startScheduler } from './services/scheduling/scheduler';
+import { ensureOwnerFromEnv } from './bootstrap/ensureOwner';
 
 if (!process.env.JWT_SECRET) {
   console.error('FATAL: JWT_SECRET não definido no .env — servidor não pode iniciar.');
@@ -38,6 +39,12 @@ app.use(
   })
 );
 
+// Rota de saúde na raiz — hospedagens costumam checar "/" pra saber se o
+// processo está vivo antes de considerar o deploy saudável; sem isso, uma
+// plataforma que espera 200 em "/" pode ficar reiniciando o processo (o que
+// já aconteceu aqui: reinícios a cada 1-3 min, sem o app nunca terminar de
+// subir de verdade).
+app.get('/', (_req, res) => res.status(200).send('NGR Barbearia API'));
 app.get('/api/v1/health', (_req, res) => res.json({ success: true, data: { status: 'ok' } }));
 
 app.use('/api/v1/auth', createAuthRouter(pool));
@@ -47,7 +54,15 @@ app.use('/api/v1', createAppointmentsRouter({ pool, auth, requireRoles }));
 // a URL do webhook é fixa no Meta Business Manager).
 app.use(createWhatsAppWebhookRouter());
 
-app.listen(PORT, () => {
-  console.log(`[server] NGR Barbearia API rodando na porta ${PORT}`);
-  startScheduler();
-});
+// Roda antes de começar a aceitar conexões — em algumas hospedagens o
+// processo é reiniciado poucos segundos depois do boot se "/" não responder
+// rápido, o que já cortou esse passo no meio antes (nenhum log de bootstrap
+// chegava a aparecer). Rodar primeiro e só then ligar o listener evita a corrida.
+ensureOwnerFromEnv()
+  .catch((err) => console.error('[bootstrap] falha ao garantir owner:', err))
+  .finally(() => {
+    app.listen(PORT, () => {
+      console.log(`[server] NGR Barbearia API rodando na porta ${PORT}`);
+      startScheduler();
+    });
+  });

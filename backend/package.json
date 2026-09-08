@@ -2,11 +2,11 @@
   "name": "ngr-barbearia-backend",
   "version": "1.0.0",
   "description": "Backend da NGR Barbearia — WhatsApp + IA + agendamento",
-  "main": "dist/server.js",
+  "main": "dist/src/server.js",
   "scripts": {
     "dev": "node --require ts-node/register/transpile-only src/server.ts",
     "build": "tsc -p tsconfig.json",
-    "start": "node dist/server.js",
+    "start": "node dist/src/server.js",
     "simulate": "node --require ts-node/register/transpile-only scripts/simulate-conversation.ts",
     "create-owner": "node --require ts-node/register/transpile-only scripts/create-owner.ts",
     "test": "node --require ts-node/register/transpile-only --test src/**/*.test.ts"

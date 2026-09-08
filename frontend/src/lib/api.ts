@@ -17,7 +17,6 @@ api.interceptors.response.use(
     if (error.response?.status === 401 && typeof window !== 'undefined') {
       Cookies.remove('ngr_token');
       // fora de componente React (interceptor do axios) — sem acesso ao router do Next aqui.
-      // eslint-disable-next-line @next/next/no-location-assign-relative-destination
       window.location.href = '/login';
     }
     return Promise.reject(error);

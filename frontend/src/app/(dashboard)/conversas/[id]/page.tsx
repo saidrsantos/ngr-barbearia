@@ -1,12 +1,11 @@
 'use client';
 
-import { use, useEffect, useState, FormEvent, useCallback } from 'react';
+import { useEffect, useState, FormEvent, useCallback } from 'react';
 import Link from 'next/link';
 import { conversationsApi, Conversation, Message } from '@/lib/api';
 
-export default function ConversaDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params);
-  const conversationId = parseInt(id, 10);
+export default function ConversaDetailPage({ params }: { params: { id: string } }) {
+  const conversationId = parseInt(params.id, 10);
 
   const [conversation, setConversation] = useState<Conversation | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
