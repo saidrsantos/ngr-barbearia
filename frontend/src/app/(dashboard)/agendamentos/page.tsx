@@ -39,7 +39,7 @@ export default function AgendamentosPage() {
 
   return (
     <div>
-      <h1 className="mb-6 text-lg font-semibold">Agendamentos</h1>
+      <h1 className="mb-6 text-lg font-semibold text-gray-900 dark:text-gray-100">Agendamentos</h1>
 
       <div className="mb-4 flex gap-2">
         {['', 'tentative', 'confirmed', 'completed', 'cancelled'].map((s) => (
@@ -47,7 +47,9 @@ export default function AgendamentosPage() {
             key={s}
             onClick={() => setStatusFilter(s)}
             className={`rounded-full px-3 py-1 text-xs font-medium ${
-              statusFilter === s ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600'
+              statusFilter === s
+                ? 'bg-emerald-700 text-white dark:bg-emerald-600'
+                : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
             }`}
           >
             {s === '' ? 'Todos' : STATUS_LABEL[s]}
@@ -56,11 +58,11 @@ export default function AgendamentosPage() {
       </div>
 
       {loading ? (
-        <p className="text-sm text-gray-500">Carregando...</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400">Carregando...</p>
       ) : (
-        <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
+        <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
           <table className="w-full text-sm">
-            <thead className="bg-gray-50 text-left text-xs uppercase text-gray-500">
+            <thead className="bg-gray-50 text-left text-xs uppercase text-gray-500 dark:bg-gray-800/50 dark:text-gray-400">
               <tr>
                 <th className="px-4 py-2">Data/hora</th>
                 <th className="px-4 py-2">Cliente</th>
@@ -72,23 +74,25 @@ export default function AgendamentosPage() {
             </thead>
             <tbody>
               {appointments.map((a) => (
-                <tr key={a.id} className="border-t border-gray-100">
-                  <td className="px-4 py-2">{new Date(a.scheduled_at).toLocaleString('pt-BR')}</td>
-                  <td className="px-4 py-2">
-                    <p>{a.customer_name || '—'}</p>
-                    <p className="text-xs text-gray-400">{a.whatsapp_number}</p>
+                <tr key={a.id} className="border-t border-gray-100 dark:border-gray-800">
+                  <td className="px-4 py-2 text-gray-900 dark:text-gray-100">
+                    {new Date(a.scheduled_at).toLocaleString('pt-BR')}
                   </td>
-                  <td className="px-4 py-2">{a.service_name}</td>
-                  <td className="px-4 py-2">{a.barber_name || '—'}</td>
-                  <td className="px-4 py-2">{STATUS_LABEL[a.status] || a.status}</td>
+                  <td className="px-4 py-2">
+                    <p className="text-gray-900 dark:text-gray-100">{a.customer_name || '—'}</p>
+                    <p className="text-xs text-gray-400 dark:text-gray-500">{a.whatsapp_number}</p>
+                  </td>
+                  <td className="px-4 py-2 text-gray-700 dark:text-gray-300">{a.service_name}</td>
+                  <td className="px-4 py-2 text-gray-700 dark:text-gray-300">{a.barber_name || '—'}</td>
+                  <td className="px-4 py-2 text-gray-700 dark:text-gray-300">{STATUS_LABEL[a.status] || a.status}</td>
                   <td className="px-4 py-2 text-right">
                     {a.status === 'tentative' && (
-                      <button onClick={() => handleConfirm(a.id)} className="mr-3 text-xs text-green-700 underline">
+                      <button onClick={() => handleConfirm(a.id)} className="mr-3 text-xs text-green-700 underline dark:text-green-400">
                         Confirmar
                       </button>
                     )}
                     {a.status !== 'cancelled' && a.status !== 'completed' && (
-                      <button onClick={() => handleCancel(a.id)} className="text-xs text-red-600 underline">
+                      <button onClick={() => handleCancel(a.id)} className="text-xs text-red-600 underline dark:text-red-400">
                         Cancelar
                       </button>
                     )}
@@ -97,7 +101,7 @@ export default function AgendamentosPage() {
               ))}
               {appointments.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-4 py-6 text-center text-gray-400">
+                  <td colSpan={6} className="px-4 py-6 text-center text-gray-400 dark:text-gray-500">
                     Nenhum agendamento por aqui ainda.
                   </td>
                 </tr>

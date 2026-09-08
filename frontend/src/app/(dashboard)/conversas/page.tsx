@@ -13,11 +13,11 @@ const STATUS_LABEL: Record<string, string> = {
 };
 
 const STATUS_COLOR: Record<string, string> = {
-  browsing: 'bg-gray-100 text-gray-700',
-  scheduling: 'bg-blue-100 text-blue-700',
-  scheduled: 'bg-green-100 text-green-700',
-  needs_human: 'bg-amber-100 text-amber-800',
-  abandoned_followup_sent: 'bg-gray-100 text-gray-500',
+  browsing: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300',
+  scheduling: 'bg-blue-100 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400',
+  scheduled: 'bg-green-100 text-green-700 dark:bg-green-500/10 dark:text-green-400',
+  needs_human: 'bg-amber-100 text-amber-800 dark:bg-amber-500/10 dark:text-amber-400',
+  abandoned_followup_sent: 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-500',
 };
 
 export default function ConversasPage() {
@@ -35,7 +35,7 @@ export default function ConversasPage() {
 
   return (
     <div>
-      <h1 className="mb-6 text-lg font-semibold">Conversas</h1>
+      <h1 className="mb-6 text-lg font-semibold text-gray-900 dark:text-gray-100">Conversas</h1>
 
       <div className="mb-4 flex gap-2">
         {['', 'needs_human', 'browsing', 'scheduled'].map((s) => (
@@ -43,7 +43,9 @@ export default function ConversasPage() {
             key={s}
             onClick={() => setStatusFilter(s)}
             className={`rounded-full px-3 py-1 text-xs font-medium ${
-              statusFilter === s ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600'
+              statusFilter === s
+                ? 'bg-emerald-700 text-white dark:bg-emerald-600'
+                : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
             }`}
           >
             {s === '' ? 'Todas' : STATUS_LABEL[s]}
@@ -52,25 +54,25 @@ export default function ConversasPage() {
       </div>
 
       {loading ? (
-        <p className="text-sm text-gray-500">Carregando...</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400">Carregando...</p>
       ) : (
         <div className="space-y-2">
           {conversations.map((c) => (
             <Link
               key={c.id}
               href={`/conversas/${c.id}`}
-              className="flex items-center justify-between rounded-xl border border-gray-200 bg-white p-4 hover:border-gray-300"
+              className="flex items-center justify-between rounded-xl border border-gray-200 bg-white p-4 hover:border-gray-300 dark:border-gray-800 dark:bg-gray-900 dark:hover:border-gray-700"
             >
               <div>
-                <p className="font-medium">{c.customer_name || c.whatsapp_number}</p>
-                <p className="text-xs text-gray-400">{new Date(c.last_message_at).toLocaleString('pt-BR')}</p>
+                <p className="font-medium text-gray-900 dark:text-gray-100">{c.customer_name || c.whatsapp_number}</p>
+                <p className="text-xs text-gray-400 dark:text-gray-500">{new Date(c.last_message_at).toLocaleString('pt-BR')}</p>
               </div>
               <span className={`rounded-full px-3 py-1 text-xs font-medium ${STATUS_COLOR[c.status] || ''}`}>
                 {STATUS_LABEL[c.status] || c.status}
               </span>
             </Link>
           ))}
-          {conversations.length === 0 && <p className="text-sm text-gray-400">Nenhuma conversa por aqui ainda.</p>}
+          {conversations.length === 0 && <p className="text-sm text-gray-400 dark:text-gray-500">Nenhuma conversa por aqui ainda.</p>}
         </div>
       )}
     </div>

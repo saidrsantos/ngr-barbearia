@@ -161,6 +161,24 @@ export const debtsApi = {
   unpayInstallment: (id: number) => api.patch(`/installments/${id}/unpay`),
 };
 
+export interface Payable {
+  id: number;
+  description: string;
+  amount_cents: number;
+  due_date: string;
+  status: 'pending' | 'paid';
+  paid_at: string | null;
+}
+
+export const payablesApi = {
+  list: (status?: string) => api.get<{ data: Payable[] }>('/payables', { params: status ? { status } : {} }),
+  create: (payload: { description: string; amount_cents: number; due_date: string }) =>
+    api.post('/payables', payload),
+  remove: (id: number) => api.delete(`/payables/${id}`),
+  pay: (id: number) => api.patch(`/payables/${id}/pay`),
+  unpay: (id: number) => api.patch(`/payables/${id}/unpay`),
+};
+
 export const conversationsApi = {
   list: (status?: string) => api.get<{ data: Conversation[] }>('/conversations', { params: status ? { status } : {} }),
   get: (id: number) => api.get<{ data: Conversation }>(`/conversations/${id}`),

@@ -67,6 +67,22 @@ CREATE INDEX IF NOT EXISTS idx_debt_installments_due_date ON barber_debt_install
 
 -- appbarber_code liga esse serviço ao service_code correspondente na API do
 -- App Barber, mesma ideia do barbers.appbarber_code acima.
+-- Contas a pagar da barbearia (aluguel, fornecedor, conta de luz etc.) —
+-- diferente de barber_debts (aquilo é dinheiro que o barbeiro deve pra
+-- barbearia; isso aqui é dinheiro que a barbearia deve pra fora).
+CREATE TABLE IF NOT EXISTS payables (
+  id           INT AUTO_INCREMENT PRIMARY KEY,
+  description  VARCHAR(255) NOT NULL,
+  amount_cents INT NOT NULL,
+  due_date     DATE NOT NULL,
+  status       ENUM('pending','paid') NOT NULL DEFAULT 'pending',
+  paid_at      TIMESTAMP NULL,
+  created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_payables_due_date ON payables(due_date);
+CREATE INDEX IF NOT EXISTS idx_payables_status   ON payables(status);
+
 CREATE TABLE IF NOT EXISTS services (
   id             INT AUTO_INCREMENT PRIMARY KEY,
   name           VARCHAR(100) NOT NULL,
