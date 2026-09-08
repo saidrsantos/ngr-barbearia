@@ -27,23 +27,23 @@ export function createAppointmentsRouter({ pool, auth, requireRoles }: RouterDep
   });
 
   router.post('/services', auth, requireRoles('owner'), async (req, res) => {
-    const { name, description, price_cents, duration_min } = req.body;
+    const { name, description, price_cents, duration_min, appbarber_code } = req.body;
     if (!name || !price_cents) {
       return res.status(400).json({ success: false, message: 'name e price_cents são obrigatórios.' });
     }
     const [result] = await pool.execute(
-      'INSERT INTO services (name, description, price_cents, duration_min) VALUES (?, ?, ?, ?)',
-      [name, description || null, price_cents, duration_min || 30]
+      'INSERT INTO services (name, description, price_cents, duration_min, appbarber_code) VALUES (?, ?, ?, ?, ?)',
+      [name, description || null, price_cents, duration_min || 30, appbarber_code || null]
     );
     res.status(201).json({ success: true, data: { id: (result as any).insertId } });
   });
 
   router.put('/services/:id', auth, requireRoles('owner'), async (req, res) => {
-    const { name, description, price_cents, duration_min, active } = req.body;
+    const { name, description, price_cents, duration_min, active, appbarber_code } = req.body;
     await pool.execute(
-      `UPDATE services SET name = ?, description = ?, price_cents = ?, duration_min = ?, active = ?
+      `UPDATE services SET name = ?, description = ?, price_cents = ?, duration_min = ?, active = ?, appbarber_code = ?
        WHERE id = ?`,
-      [name, description || null, price_cents, duration_min, active ? 1 : 0, req.params.id]
+      [name, description || null, price_cents, duration_min, active ? 1 : 0, appbarber_code || null, req.params.id]
     );
     res.json({ success: true });
   });
@@ -95,10 +95,24 @@ export function createAppointmentsRouter({ pool, auth, requireRoles }: RouterDep
   });
 
   router.post('/barbers', auth, requireRoles('owner'), async (req, res) => {
-    const { name } = req.body;
+    const { name, appbarber_code } = req.body;
     if (!name) return res.status(400).json({ success: false, message: 'name é obrigatório.' });
-    const [result] = await pool.execute('INSERT INTO barbers (name) VALUES (?)', [name]);
+    const [result] = await pool.execute('INSERT INTO barbers (name, appbarber_code) VALUES (?, ?)', [
+      name,
+      appbarber_code || null,
+    ]);
     res.status(201).json({ success: true, data: { id: (result as any).insertId } });
+  });
+
+  router.put('/barbers/:id', auth, requireRoles('owner'), async (req, res) => {
+    const { name, active, appbarber_code } = req.body;
+    await pool.execute('UPDATE barbers SET name = ?, active = ?, appbarber_code = ? WHERE id = ?', [
+      name,
+      active ? 1 : 0,
+      appbarber_code || null,
+      req.params.id,
+    ]);
+    res.json({ success: true });
   });
 
   // ── Horário de funcionamento ──────────────────────────────────────────

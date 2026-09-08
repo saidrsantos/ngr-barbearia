@@ -59,6 +59,12 @@ export default function HorariosPage() {
     load();
   }
 
+  async function updateBarberAppbarberCode(barber: Barber, value: string) {
+    const code = value ? parseInt(value, 10) : null;
+    await barbersApi.update(barber.id, { ...barber, appbarber_code: code });
+    load();
+  }
+
   return (
     <div>
       <h1 className="mb-6 text-lg font-semibold">Horário de funcionamento</h1>
@@ -76,11 +82,23 @@ export default function HorariosPage() {
             Adicionar
           </button>
         </form>
-        <div className="flex flex-wrap gap-2">
+        <div className="space-y-1">
           {barbers.map((b) => (
-            <span key={b.id} className="rounded-full bg-gray-100 px-3 py-1 text-xs text-gray-700">
-              {b.name}
-            </span>
+            <div key={b.id} className="flex items-center gap-3 rounded-md bg-gray-50 px-3 py-2">
+              <span className="flex-1 text-sm text-gray-700">{b.name}</span>
+              <label className="text-xs text-gray-400">
+                Código App Barber:{' '}
+                <input
+                  type="number"
+                  defaultValue={b.appbarber_code ?? ''}
+                  placeholder="—"
+                  onBlur={(e) => {
+                    if (e.target.value !== String(b.appbarber_code ?? '')) updateBarberAppbarberCode(b, e.target.value);
+                  }}
+                  className="w-20 rounded-md border border-gray-200 px-2 py-1 text-xs text-gray-900"
+                />
+              </label>
+            </div>
           ))}
           {barbers.length === 0 && <p className="text-xs text-gray-400">Nenhum barbeiro cadastrado — os horários abaixo valem pra barbearia toda.</p>}
         </div>

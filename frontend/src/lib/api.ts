@@ -30,6 +30,7 @@ export interface Service {
   price_cents: number;
   duration_min: number;
   active: boolean;
+  appbarber_code: number | null;
 }
 
 export interface Promotion {
@@ -45,6 +46,7 @@ export interface Barber {
   id: number;
   name: string;
   active: boolean;
+  appbarber_code: number | null;
 }
 
 export interface BusinessHour {
@@ -82,6 +84,27 @@ export interface Message {
   created_at: string;
 }
 
+export interface Debt {
+  id: number;
+  barber_id: number;
+  barber_name: string;
+  description: string;
+  total_cents: number;
+  installments_count: number;
+  pending_count: number;
+  created_at: string;
+}
+
+export interface DebtInstallment {
+  id: number;
+  debt_id: number;
+  installment_number: number;
+  due_date: string;
+  amount_cents: number;
+  status: 'pending' | 'paid';
+  paid_at: string | null;
+}
+
 export const authApi = {
   login: (email: string, password: string) =>
     api.post<{ success: boolean; data: { token: string; user: { id: number; name: string; role: string } } }>(
@@ -108,6 +131,7 @@ export const promotionsApi = {
 export const barbersApi = {
   list: () => api.get<{ data: Barber[] }>('/barbers'),
   create: (payload: Partial<Barber>) => api.post('/barbers', payload),
+  update: (id: number, payload: Partial<Barber>) => api.put(`/barbers/${id}`, payload),
 };
 
 export const businessHoursApi = {
@@ -120,6 +144,21 @@ export const appointmentsApi = {
   list: (params?: Record<string, string>) => api.get<{ data: Appointment[] }>('/appointments', { params }),
   confirm: (id: number) => api.patch(`/appointments/${id}/confirm`),
   cancel: (id: number) => api.patch(`/appointments/${id}/cancel`),
+};
+
+export const debtsApi = {
+  list: (barberId?: number) => api.get<{ data: Debt[] }>('/debts', { params: barberId ? { barber_id: barberId } : {} }),
+  installments: (debtId: number) => api.get<{ data: DebtInstallment[] }>(`/debts/${debtId}/installments`),
+  create: (payload: {
+    barber_id: number;
+    description: string;
+    total_cents: number;
+    installments_count: number;
+    first_due_date: string;
+  }) => api.post('/debts', payload),
+  remove: (id: number) => api.delete(`/debts/${id}`),
+  payInstallment: (id: number) => api.patch(`/installments/${id}/pay`),
+  unpayInstallment: (id: number) => api.patch(`/installments/${id}/unpay`),
 };
 
 export const conversationsApi = {

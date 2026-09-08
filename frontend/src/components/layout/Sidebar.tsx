@@ -12,6 +12,7 @@ const NAV_ITEMS = [
   { href: '/servicos', label: 'Serviços' },
   { href: '/promocoes', label: 'Promoções' },
   { href: '/horarios', label: 'Horários' },
+  { href: '/dividas', label: 'Dívidas' },
 ];
 
 export function Sidebar() {

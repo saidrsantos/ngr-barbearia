@@ -27,22 +27,61 @@ INSERT IGNORE INTO business_settings (setting_key, setting_value) VALUES
   ('payment_methods', 'Dinheiro, PIX e cartão'),
   ('welcome_message', 'Olá! Seja bem-vindo à NGR Barbearia. Como posso te ajudar?');
 
+-- appbarber_code liga esse barbeiro ao employee_code correspondente na API
+-- do App Barber — preenchido manualmente no painel quando o acesso à API
+-- for usado (ver AppBarberProvider). NULL enquanto usar a agenda interna.
 CREATE TABLE IF NOT EXISTS barbers (
-  id         INT AUTO_INCREMENT PRIMARY KEY,
-  name       VARCHAR(100) NOT NULL,
-  active     BOOLEAN NOT NULL DEFAULT TRUE,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  id             INT AUTO_INCREMENT PRIMARY KEY,
+  name           VARCHAR(100) NOT NULL,
+  active         BOOLEAN NOT NULL DEFAULT TRUE,
+  appbarber_code INT NULL,
+  created_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS services (
-  id           INT AUTO_INCREMENT PRIMARY KEY,
-  name         VARCHAR(100) NOT NULL,
-  description  TEXT,
-  price_cents  INT NOT NULL,
-  duration_min INT NOT NULL DEFAULT 30,
-  active       BOOLEAN NOT NULL DEFAULT TRUE,
-  created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+-- Adiantamentos/compras que o dono faz pro barbeiro (ex: máquina de corte),
+-- pagos de volta em parcelas. Controle separado — ainda não desconta
+-- automaticamente de nenhuma comissão (módulo de comissão não existe ainda).
+CREATE TABLE IF NOT EXISTS barber_debts (
+  id                 INT AUTO_INCREMENT PRIMARY KEY,
+  barber_id          INT NOT NULL,
+  description        VARCHAR(255) NOT NULL,
+  total_cents        INT NOT NULL,
+  installments_count  INT NOT NULL,
+  created_at         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (barber_id) REFERENCES barbers(id) ON DELETE CASCADE
 );
+
+CREATE TABLE IF NOT EXISTS barber_debt_installments (
+  id                  INT AUTO_INCREMENT PRIMARY KEY,
+  debt_id             INT NOT NULL,
+  installment_number  INT NOT NULL,
+  due_date            DATE NOT NULL,
+  amount_cents        INT NOT NULL,
+  status              ENUM('pending','paid') NOT NULL DEFAULT 'pending',
+  paid_at             TIMESTAMP NULL,
+  FOREIGN KEY (debt_id) REFERENCES barber_debts(id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_debt_installments_debt    ON barber_debt_installments(debt_id);
+CREATE INDEX IF NOT EXISTS idx_debt_installments_due_date ON barber_debt_installments(due_date);
+
+-- appbarber_code liga esse serviço ao service_code correspondente na API do
+-- App Barber, mesma ideia do barbers.appbarber_code acima.
+CREATE TABLE IF NOT EXISTS services (
+  id             INT AUTO_INCREMENT PRIMARY KEY,
+  name           VARCHAR(100) NOT NULL,
+  description    TEXT,
+  price_cents    INT NOT NULL,
+  duration_min   INT NOT NULL DEFAULT 30,
+  active         BOOLEAN NOT NULL DEFAULT TRUE,
+  appbarber_code INT NULL,
+  created_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Migrações idempotentes — cobrem bancos já existentes (o CREATE TABLE IF
+-- NOT EXISTS acima só define a coluna em instalações novas).
+ALTER TABLE barbers  ADD COLUMN IF NOT EXISTS appbarber_code INT NULL;
+ALTER TABLE services ADD COLUMN IF NOT EXISTS appbarber_code INT NULL;
 
 CREATE TABLE IF NOT EXISTS promotions (
   id          INT AUTO_INCREMENT PRIMARY KEY,

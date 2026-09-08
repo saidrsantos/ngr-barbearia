@@ -14,6 +14,7 @@ export default function ServicosPage() {
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState('');
   const [duration, setDuration] = useState('30');
+  const [appbarberCode, setAppbarberCode] = useState('');
   const [saving, setSaving] = useState(false);
 
   function load() {
@@ -36,11 +37,13 @@ export default function ServicosPage() {
         description: description || null,
         price_cents: priceCents,
         duration_min: parseInt(duration, 10),
+        appbarber_code: appbarberCode ? parseInt(appbarberCode, 10) : null,
       });
       setName('');
       setDescription('');
       setPrice('');
       setDuration('30');
+      setAppbarberCode('');
       load();
     } finally {
       setSaving(false);
@@ -56,11 +59,21 @@ export default function ServicosPage() {
     load();
   }
 
+  async function updateAppbarberCode(service: Service, value: string) {
+    const code = value ? parseInt(value, 10) : null;
+    await servicesApi.update(service.id, { ...service, appbarber_code: code });
+    load();
+  }
+
   return (
     <div>
-      <h1 className="mb-6 text-lg font-semibold">Serviços</h1>
+      <h1 className="mb-1 text-lg font-semibold">Serviços</h1>
+      <p className="mb-6 text-sm text-gray-500">
+        O &quot;Código App Barber&quot; liga esse serviço ao serviço correspondente lá no App Barber — preencha quando a
+        agenda estiver usando a integração real (em vez da agenda interna).
+      </p>
 
-      <form onSubmit={handleSubmit} className="mb-8 grid grid-cols-1 gap-3 rounded-xl border border-gray-200 bg-white p-5 sm:grid-cols-5">
+      <form onSubmit={handleSubmit} className="mb-8 grid grid-cols-1 gap-3 rounded-xl border border-gray-200 bg-white p-5 sm:grid-cols-6">
         <input
           placeholder="Nome do serviço"
           required
@@ -92,6 +105,13 @@ export default function ServicosPage() {
           onChange={(e) => setDuration(e.target.value)}
           className="rounded-md border border-gray-300 px-3 py-2 text-sm"
         />
+        <input
+          placeholder="Código App Barber (opcional)"
+          type="number"
+          value={appbarberCode}
+          onChange={(e) => setAppbarberCode(e.target.value)}
+          className="rounded-md border border-gray-300 px-3 py-2 text-sm sm:col-span-2"
+        />
         <button
           type="submit"
           disabled={saving}
@@ -111,6 +131,7 @@ export default function ServicosPage() {
                 <th className="px-4 py-2">Nome</th>
                 <th className="px-4 py-2">Preço</th>
                 <th className="px-4 py-2">Duração</th>
+                <th className="px-4 py-2">Código App Barber</th>
                 <th className="px-4 py-2">Status</th>
                 <th className="px-4 py-2" />
               </tr>
@@ -125,6 +146,17 @@ export default function ServicosPage() {
                   <td className="px-4 py-2">{formatBRL(s.price_cents)}</td>
                   <td className="px-4 py-2">{s.duration_min} min</td>
                   <td className="px-4 py-2">
+                    <input
+                      type="number"
+                      defaultValue={s.appbarber_code ?? ''}
+                      placeholder="—"
+                      onBlur={(e) => {
+                        if (e.target.value !== String(s.appbarber_code ?? '')) updateAppbarberCode(s, e.target.value);
+                      }}
+                      className="w-24 rounded-md border border-gray-200 px-2 py-1 text-xs"
+                    />
+                  </td>
+                  <td className="px-4 py-2">
                     <span className={s.active ? 'text-green-700' : 'text-gray-400'}>
                       {s.active ? 'Ativo' : 'Inativo'}
                     </span>
@@ -138,7 +170,7 @@ export default function ServicosPage() {
               ))}
               {services.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="px-4 py-6 text-center text-gray-400">
+                  <td colSpan={6} className="px-4 py-6 text-center text-gray-400">
                     Nenhum serviço cadastrado ainda.
                   </td>
                 </tr>

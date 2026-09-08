@@ -6,6 +6,7 @@ import { auth, requireRoles } from './middleware/auth';
 import { createAuthRouter } from './routes/auth';
 import { createConversationsRouter } from './routes/conversations';
 import { createAppointmentsRouter } from './services/appointments';
+import { createDebtsRouter } from './services/debts/router';
 import { createWhatsAppWebhookRouter } from './services/whatsapp/webhookRouter';
 import { startScheduler } from './services/scheduling/scheduler';
 import { ensureOwnerFromEnv } from './bootstrap/ensureOwner';
@@ -50,6 +51,7 @@ app.get('/api/v1/health', (_req, res) => res.json({ success: true, data: { statu
 app.use('/api/v1/auth', createAuthRouter(pool));
 app.use('/api/v1/conversations', createConversationsRouter(pool));
 app.use('/api/v1', createAppointmentsRouter({ pool, auth, requireRoles }));
+app.use('/api/v1', createDebtsRouter({ pool, auth, requireRoles }));
 // WhatsApp Cloud API chama estas rotas diretamente (fora do prefixo /api/v1 —
 // a URL do webhook é fixa no Meta Business Manager).
 app.use(createWhatsAppWebhookRouter());
