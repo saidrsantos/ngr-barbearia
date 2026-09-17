@@ -18,6 +18,11 @@ interface ServiceRow extends RowDataPacket {
   duration_min: number;
 }
 
+interface BarberRow extends RowDataPacket {
+  id: number;
+  name: string;
+}
+
 function formatBRL(cents: number): string {
   return (cents / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
@@ -25,6 +30,14 @@ function formatBRL(cents: number): string {
 async function findServiceByName(name: string): Promise<ServiceRow | null> {
   const [rows] = await pool.query<ServiceRow[]>(
     'SELECT id, name, price_cents, duration_min FROM services WHERE active = 1 AND name LIKE ? LIMIT 1',
+    [`%${name}%`]
+  );
+  return rows[0] || null;
+}
+
+async function findBarberByName(name: string): Promise<BarberRow | null> {
+  const [rows] = await pool.query<BarberRow[]>(
+    'SELECT id, name FROM barbers WHERE active = 1 AND name LIKE ? LIMIT 1',
     [`%${name}%`]
   );
   return rows[0] || null;
@@ -43,12 +56,13 @@ export const tools: ChatCompletionTool[] = [
     type: 'function',
     function: {
       name: 'buscar_horarios_disponiveis',
-      description: 'Busca horários realmente disponíveis para um serviço nos próximos dias. Sempre use antes de propor um horário ao cliente.',
+      description: 'Busca horários realmente disponíveis para um serviço nos próximos dias. Sempre use antes de propor um horário ao cliente. Se o cliente disser que tem preferência por um barbeiro específico, passe "barbeiro_nome" para filtrar só a agenda dele — não pergunte a preferência se o cliente não demonstrar uma.',
       parameters: {
         type: 'object',
         properties: {
           nome_servico: { type: 'string', description: 'Nome do serviço (como aparece em listar_servicos_precos).' },
           dias_a_frente: { type: 'integer', description: 'Quantos dias a partir de hoje considerar na busca. Padrão 7.' },
+          barbeiro_nome: { type: 'string', description: 'Nome do barbeiro, apenas se o cliente tiver preferência. Omitir para buscar entre todos os barbeiros e oferecer o horário mais próximo disponível.' },
         },
         required: ['nome_servico'],
       },
@@ -114,12 +128,20 @@ export function createToolExecutor(ctx: ToolContext) {
         const service = await findServiceByName(args.nome_servico);
         if (!service) return { erro: 'Serviço não encontrado. Use listar_servicos_precos primeiro.' };
 
+        let barberId: number | undefined;
+        if (args.barbeiro_nome) {
+          const barber = await findBarberByName(args.barbeiro_nome);
+          if (!barber) return { erro: 'Barbeiro não encontrado com esse nome. Confirme o nome com o cliente ou busque sem esse filtro.' };
+          barberId = barber.id;
+        }
+
         const diasAFrente = Math.min(Math.max(Number(args.dias_a_frente) || 7, 1), 14);
         const from = new Date();
         const to = new Date(from.getTime() + diasAFrente * 24 * 60 * 60 * 1000);
 
         const slots = await getAppointmentProvider().listAvailability(service.id, { from, to });
-        const top = slots.slice(0, 8);
+        const filtered = barberId === undefined ? slots : slots.filter((s) => s.barberId === barberId);
+        const top = filtered.slice(0, 20);
         return {
           servico: service.name,
           horarios: top.map((s: Slot) => ({

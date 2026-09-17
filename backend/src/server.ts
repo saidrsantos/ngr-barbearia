@@ -49,6 +49,45 @@ app.use(
 app.get('/', (_req, res) => res.status(200).send('NGR Barbearia API'));
 app.get('/api/v1/health', (_req, res) => res.json({ success: true, data: { status: 'ok' } }));
 
+// Rota temporária — busca o catálogo de serviços e profissionais direto na
+// API do App Barber, só pra pegar os service_code/employee_code e preencher
+// no painel. Remover a rota depois de usar.
+app.get('/api/v1/appbarber-catalogo', auth, async (_req, res) => {
+  const apiKey = process.env.APPBARBER_API_KEY;
+  const establishmentCode = process.env.APPBARBER_ESTABLISHMENT_CODE;
+  if (!apiKey || !establishmentCode) {
+    return res.status(400).json({ success: false, message: 'APPBARBER_API_KEY/APPBARBER_ESTABLISHMENT_CODE não configurados.' });
+  }
+  try {
+    const headers = {
+      'X-API-Key': apiKey,
+      'User-Agent': 'Mozilla/5.0 (compatible; NGRBarbeariaBackend/1.0)',
+      Accept: 'application/json',
+    };
+    const [servicesRes, professionalsRes] = await Promise.all([
+      fetch(`https://api.appbarber.com/v1/services?establishment_code=${establishmentCode}`, { headers }),
+      fetch(`https://api.appbarber.com/v1/professional-list?establishment_code=${establishmentCode}`, { headers }),
+    ]);
+    const servicesText = await servicesRes.text();
+    const professionalsText = await professionalsRes.text();
+    if (!servicesRes.ok || !professionalsRes.ok) {
+      return res.status(502).json({
+        success: false,
+        message: 'API do App Barber respondeu com erro.',
+        debug: {
+          services_status: servicesRes.status,
+          services_body: servicesText.slice(0, 500),
+          professionals_status: professionalsRes.status,
+          professionals_body: professionalsText.slice(0, 500),
+        },
+      });
+    }
+    res.json({ success: true, data: { services: JSON.parse(servicesText), professionals: JSON.parse(professionalsText) } });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Falha ao consultar API do App Barber.', debug: err instanceof Error ? err.message : String(err) });
+  }
+});
+
 app.use('/api/v1/auth', createAuthRouter(pool));
 app.use('/api/v1/conversations', createConversationsRouter(pool));
 app.use('/api/v1', createAppointmentsRouter({ pool, auth, requireRoles }));

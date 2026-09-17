@@ -46,6 +46,8 @@ async function callAppBarber<T>(path: string, options: RequestInit = {}): Promis
     headers: {
       'X-API-Key': APPBARBER_API_KEY,
       'Content-Type': 'application/json',
+      'User-Agent': 'Mozilla/5.0 (compatible; NGRBarbeariaBackend/1.0)',
+      Accept: 'application/json',
       ...(options.headers || {}),
     },
   });

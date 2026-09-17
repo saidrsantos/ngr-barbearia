@@ -25,7 +25,13 @@ INSERT IGNORE INTO business_settings (setting_key, setting_value) VALUES
   ('business_name', 'NGR Barbearia'),
   ('address', 'Preencher endereço no painel admin'),
   ('payment_methods', 'Dinheiro, PIX e cartão'),
-  ('welcome_message', 'Olá! Seja bem-vindo à NGR Barbearia. Como posso te ajudar?');
+  ('welcome_message', 'Olá! Seja bem-vindo à NGR Barbearia. Como posso te ajudar?'),
+  -- Link oficial de agendamento pelo App Barber, oferecido pela IA como
+  -- alternativa a agendar direto na conversa. Vazio até ser preenchido —
+  -- enquanto estiver vazio, a IA não menciona essa opção (ver systemPrompt.ts).
+  -- Ainda não há tela no painel para editar; atualizar direto no banco:
+  --   UPDATE business_settings SET setting_value = '<link>' WHERE setting_key = 'app_barber_link';
+  ('app_barber_link', '');
 
 -- appbarber_code liga esse barbeiro ao employee_code correspondente na API
 -- do App Barber — preenchido manualmente no painel quando o acesso à API
